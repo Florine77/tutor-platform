@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家教工作台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f5f7fa; display: flex; min-height: 100vh; }
+        
+        .sidebar { width: 220px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 20px 0; flex-shrink: 0; }
+        .sidebar .logo { padding: 0 20px 30px; font-size: 20px; font-weight: bold; letter-spacing: 2px; }
+        .sidebar .logo span { color: #4cc9f0; }
+        .nav-item { padding: 14px 20px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; font-size: 14px; border-left: 3px solid transparent; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); }
+        .nav-item.active { background: rgba(76,201,240,0.15); border-left-color: #4cc9f0; color: #4cc9f0; }
+        .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+        
+        .main { flex: 1; padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: #fff; padding: 16px 30px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 22px; color: #1a1a2e; }
+        .content { flex: 1; padding: 24px 30px; overflow-y: auto; }
+        
+        .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card h3 { margin-bottom: 16px; color: #1a1a2e; font-size: 17px; border-bottom: 2px solid #4cc9f0; padding-bottom: 10px; display: inline-block; }
+        .btn { padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #4cc9f0; color: #fff; }
+        .btn-primary:hover { background: #3db8df; }
+        .btn-success { background: #06d6a0; color: #fff; }
+        .btn-success:hover { background: #05b98a; }
+        .btn-danger { background: #ef476f; color: #fff; }
+        .btn-danger:hover { background: #d63d5f; }
+        .btn-outline { background: #fff; border: 1px solid #ccc; color: #555; }
+        .btn-outline:hover { background: #f5f5f5; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        
+        input, textarea, select { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 12px; font-family: inherit; transition: border 0.3s; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #4cc9f0; box-shadow: 0 0 0 3px rgba(76,201,240,0.1); }
+        textarea { resize: vertical; min-height: 80px; }
+        label { font-size: 13px; color: #666; margin-bottom: 4px; display: block; font-weight: 500; }
+        .row { display: flex; gap: 16px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 200px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #555; }
+        tr:hover { background: #f8f9ff; }
+        
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .badge-blue { background: #e0f0ff; color: #0077b6; }
+        .badge-green { background: #d8f3dc; color: #2d6a4f; }
+        .badge-orange { background: #fff3e0; color: #e67e22; }
+        
+        .empty-state { text-align: center; padding: 60px; color: #aaa; }
+        .empty-state .big-icon { font-size: 48px; margin-bottom: 16px; }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: #fff; border-radius: 16px; padding: 30px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
+        .modal h2 { margin-bottom: 20px; }
+        
+        .tab-bar { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+        .tab { padding: 10px 20px; cursor: pointer; border: none; background: none; font-size: 14px; color: #888; transition: all 0.3s; }
+        .tab.active { color: #4cc9f0; border-bottom: 2px solid #4cc9f0; margin-bottom: -2px; }
+        
+        .progress-bar { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #4cc9f0, #06d6a0); border-radius: 4px; transition: width 0.5s; }
+        
+        .feedback-box { background: #f0fff0; border: 1px solid #b7e4c7; border-radius: 8px; padding: 16px; white-space: pre-wrap; font-size: 14px; line-height: 1.8; margin: 12px 0; }
+        
+        .step-indicator { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .step { padding: 6px 14px; border-radius: 20px; font-size: 12px; background: #eee; color: #999; }
+        .step.active { background: #4cc9f0; color: #fff; }
+        .step.done { background: #06d6a0; color: #fff; }
+        .step-arrow { color: #ccc; }
+        
+        .timer-display { font-size: 28px; font-weight: bold; color: #1a1a2e; text-align: center; padding: 10px; }
+        .timer-controls { display: flex; gap: 10px; justify-content: center; }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; }
+            .sidebar .logo { font-size: 14px; padding: 0 10px 20px; }
+            .nav-item { padding: 14px 10px; justify-content: center; }
+            .nav-item span:last-child { display: none; }
+            .row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">📚 <span>家教工作台</span></div>
+        <div class="nav-item active" data-page="students"><span class="icon">👥</span> <span>学生管理</span></div>
+        <div class="nav-item" data-page="plans"><span class="icon">📝</span> <span>备课中心</span></div>
+        <div class="nav-item" data-page="classroom"><span class="icon">🏫</span> <span>上课工作台</span></div>
+        <div class="nav-item" data-page="reviews"><span class="icon">📋</span> <span>课后复盘</span></div>
+        <div class="nav-item" data-page="tracking"><span class="icon">📈</span> <span>长期跟进</span></div>
+        <div class="nav-item" data-page="dashboard"><span class="icon">📊</span> <span>数据中心</span></div>
+    </div>
+    <div class="main">
+        <div class="header">
+            <h1 id="pageTitle">学生管理</h1>
+            <div><span id="currentTime" style="color:#888;font-size:13px;"></span></div>
+        </div>
+        <div class="content" id="contentArea"></div>
+    </div>
+
+    <div id="modalContainer"></div>
+
+    <script>
+        const API = '';
+        let currentPage = 'students';
+        let students = [];
+        let lessonPlans = [];
+        let lessonReviews = [];
+        let errorBook = [];
+        let stageTests = [];
+
+        async function api(url, method='GET', body=null) {
+            const opts = { method, headers: {'Content-Type':'application/json'} };
+            if (body) opts.body = JSON.stringify(body);
+            const res = await fetch(API + url, opts);
+            return res.json();
+        }
+
+        function formatDate(d) {
+            if (!d) return '';
+            const date = new Date(d);
+            return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+        }
+
+        function updateTime() {
+            document.getElementById('currentTime').textContent = new Date().toLocaleString('zh-CN');
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                currentPage = item.dataset.page;
+                document.getElementById('pageTitle').textContent = item.querySelector('span:last-child').textContent;
+                renderPage();
+            });
+        });
+
+        async function renderPage() {
+            const area = document.getElementById('contentArea');
+            await loadAllData();
+            switch(currentPage) {
+                case 'students': renderStudents(area); break;
+                case 'plans': renderPlans(area); break;
+                case 'classroom': renderClassroom(area); break;
+                case 'reviews': renderReviews(area); break;
+                case 'tracking': renderTracking(area); break;
+                case 'dashboard': renderDashboard(area); break;
+            }
+        }
+
+        async function loadAllData() {
+            try {
+                const [s, p, r, e, t] = await Promise.all([
+                    api('/api/students'), api('/api/lesson-plans'), api('/api/lesson-reviews'),
+                    api('/api/error-book'), api('/api/stage-tests')
+                ]);
+                students = s; lessonPlans = p; lessonReviews = r; errorBook = e; stageTests = t;
+            } catch(e) { console.error('数据加载失败', e); }
+        }
+
+        function getStudentName(id) {
+            const s = students.find(s => s.id === id);
+            return s ? s.name : '未知学生';
+        }
+
+        // ==================== 学生管理 ====================
+        function renderStudents(area) {
+            let html = `<div class="card"><button class="btn btn-primary" onclick="showStudentModal()">+ 添加学生</button></div>`;
+            if (students.length === 0) {
+                html += `<div class="card empty-state"><div class="big-icon">👥</div><p>还没有学生，点击上方按钮添加第一个学生</p></div>`;
+            } else {
+                html += `<div class="card"><table><thead><tr><th>姓名</th><th>年级</th><th>科目</th><th>目标</th><th>薄弱点</th><th>性格</th><th>操作</th></tr></thead><tbody>`;
+                students.forEach(s => {
+                    html += `<tr>
+                        <td><strong>${s.name}</strong></td>
+                        <td>${s.grade||'-'}</td>
+                        <td>${s.subject||'-'}</td>
+                        <td><span class="badge badge-blue">${s.goal||'-'}</span></td>
+                        <td>${s.weaknesses||'-'}</td>
+                        <td>${s.personality||'-'}</td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" onclick="showStudentModal(${s.id})">编辑</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id})">删除</button>
+                        </td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            }
+            area.innerHTML = html;
+        }
+
+        function showStudentModal(id=null) {
+            const s = id ? students.find(s => s.id === id) : {};
+            const modal = document.getElementById('modalContainer');
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+                    <div class="modal">
+                        <h2>${id?'编辑学生':'添加学生'}</h2>
+                        <div class="row">
+                            <div class="col"><label>姓名 *</label><input id="s_name" value="${s.name||''}"></div>
+                            <div class="col"><label>年级</label><input id="s_grade" value="${s.grade||''}"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label>科目</label><input id="s_subject" value="${s.subject||''}"></div>
+                            <div class="col"><label>目标</label><select id="s_goal"><option value="">请选择</option><option value="提分" ${s.goal==='提分'?'selected':''}>提分</option><option value="补基础" ${s.goal==='补基础'?'selected':''}>补基础</option><option value="培优" ${s.goal==='培优'?'selected':''}>培优</option></select></div>
+                        </div>
+                        <label>薄弱点</label><textarea id="s_weaknesses">${s.weaknesses||''}</textarea>
+                        <div class="row">
+                            <div class="col"><label>性格标签</label><input id="s_personality" value="${s.personality||''}" placeholder="如：内向、活泼、叛逆期"></div>
+                            <div class="col"><label>注意力</label><select id="s_attention"><option value="">请选择</option><option value="集中" ${s.attention==='集中'?'selected':''}>集中</option><option value="一般" ${s.attention==='一般'?'selected':''}>一般</option><option value="容易走神" ${s.attention==='容易走神'?'selected':''}>容易走神</option></select></div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label>上课设备</label><input id="s_device" value="${s.device||''}" placeholder="如：iPad+手写笔、电脑"></div>
+                            <div class="col"><label>家长联系方式</label><input id="s_parent_contact" value="${s.parent_contact||''}" placeholder="微信/电话"></div>
+                        </div>
+                        <label>家长备注</label><textarea id="s_parent_notes">${s.parent_notes||''}</textarea>
+                        <br>
+                        <button class="btn btn-primary" onclick="saveStudent(${id||0})">保存</button>
+                        <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                    </div>
+                </div>`;
+        }
+
+        async function saveStudent(id) {
+            const data = {
+                name: document.getElementById('s_name').value,
+                grade: document.getElementById('s_grade').value,
+                subject: document.getElementById('s_subject').value,
+                goal: document.getElementById('s_goal').value,
+                weaknesses: document.getElementById('s_weaknesses').value,
+                personality: document.getElementById('s_personality').value,
+                attention: document.getElementById('s_attention').value,
+                device: document.getElementById('s_device').value,
+                parent_contact: document.getElementById('s_parent_contact').value,
+                parent_notes: document.getElementById('s_parent_notes').value
+            };
+            if (!data.name) { alert('请输入学生姓名'); return; }
+            if (id) {
+                await api('/api/students/'+id, 'PUT', data);
+            } else {
+                await api('/api/students', 'POST', data);
+            }
+            closeModal();
+            renderPage();
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm('确定删除该学生及其所有相关数据吗？此操作不可恢复！')) return;
+            await api('/api/students/'+id, 'DELETE');
+            renderPage();
+        }
+
+        function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
+
+        // ==================== 备课中心 ====================
+        function renderPlans(area) {
+            let html = `<div class="card"><button class="btn btn-primary" onclick="showPlanModal()">+ 新建备课</button></div>`;
+            if (lessonPlans.length === 0) {
+                html += `<div class="card empty-state"><div class="big-icon">📝</div><p>还没有备课记录，点击上方按钮开始备课</p></div>`;
+            } else {
+                html += `<div class="card"><table><thead><tr><th>课程标题</th><th>学生</th><th>教学目标</th><th>创建时间</th><th>操作</th></tr></thead><tbody>`;
+                lessonPlans.forEach(p => {
+                    html += `<tr>
+                        <td><strong>${p.title||'未命名课程'}</strong></td>
+                        <td>${getStudentName(p.student_id)}</td>
+                        <td>${(p.objectives||'').substring(0,30)}...</td>
+                        <td>${formatDate(p.created_at)}</td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" onclick="showPlanModal(${p.id})">查看</button>
+                        </td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            }
+            area.innerHTML = html;
+        }
+
+        function showPlanModal(id=null) {
+            const p = id ? lessonPlans.find(p => p.id === id) : {};
+            const modal = document.getElementById('modalContainer');
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+                    <div class="modal" style="max-width:800px;">
+                        <h2>${id?'备课详情':'新建备课'}</h2>
+                        <div class="row">
+                            <div class="col"><label>课程标题</label><input id="p_title" value="${p.title||''}"></div>
+                            <div class="col"><label>选择学生 *</label><select id="p_student_id">${students.map(s => `<option value="${s.id}" ${p.student_id===s.id?'selected':''}>${s.name} (${s.subject||''})</option>`).join('')}</select></div>
+                        </div>
+                        <label>本节课目标（1-3个必须掌握的知识点）</label><textarea id="p_objectives">${p.objectives||''}</textarea>
+                        <label>知识点梳理（定义→公式→规则→易错点）</label><textarea id="p_knowledge_points">${p.knowledge_points||''}</textarea>
+                        <label>例题（基础题→中档题→少量难题，含步骤和思路）</label><textarea id="p_examples">${p.examples||''}</textarea>
+                        <label>预设问题（学生可能哪里听不懂，怎么换方式讲）</label><textarea id="p_expected_problems">${p.expected_problems||''}</textarea>
+                        <div class="row">
+                            <div class="col"><label>讲义/资料链接</label><input id="p_materials_link" value="${p.materials_link||''}"></div>
+                            <div class="col"><label>课后作业</label><textarea id="p_homework">${p.homework||''}</textarea></div>
+                        </div>
+                        <label>环节时间估算（分钟）</label>
+                        <div class="row">
+                            <div class="col"><label>暖场</label><input type="number" id="p_warmup" value="${p.estimated_minutes_warmup||5}"></div>
+                            <div class="col"><label>讲解</label><input type="number" id="p_teaching" value="${p.estimated_minutes_teaching||20}"></div>
+                            <div class="col"><label>练习</label><input type="number" id="p_practice" value="${p.estimated_minutes_practice||20}"></div>
+                            <div class="col"><label>小测</label><input type="number" id="p_quiz" value="${p.estimated_minutes_quiz||10}"></div>
+                            <div class="col"><label>总结</label><input type="number" id="p_summary" value="${p.estimated_minutes_summary||5}"></div>
+                        </div>
+                        <br>
+                        <button class="btn btn-primary" onclick="savePlan(${id||0})">保存备课</button>
+                        <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                    </div>
+                </div>`;
+        }
+
+        async function savePlan(id) {
+            const data = {
+                student_id: parseInt(document.getElementById('p_student_id').value),
+                title: document.getElementById('p_title').value,
+                objectives: document.getElementById('p_objectives').value,
+                knowledge_points: document.getElementById('p_knowledge_points').value,
+                examples: document.getElementById('p_examples').value,
+                expected_problems: document.getElementById('p_expected_problems').value,
+                materials_link: document.getElementById('p_materials_link').value,
+                homework: document.getElementById('p_homework').value,
+                estimated_minutes_warmup: parseInt(document.getElementById('p_warmup').value),
+                estimated_minutes_teaching: parseInt(document.getElementById('p_teaching').value),
+                estimated_minutes_practice: parseInt(document.getElementById('p_practice').value),
+                estimated_minutes_quiz: parseInt(document.getElementById('p_quiz').value),
+                estimated_minutes_summary: parseInt(document.getElementById('p_summary').value)
+            };
+            if (!data.student_id) { alert('请选择学生'); return; }
+            await api('/api/lesson-plans', 'POST', data);
+            closeModal();
+            renderPage();
+        }
+
+        // ==================== 上课工作台 ====================
+        let classroomTimer = null;
+        let classroomSeconds = 0;
+        let classroomRunning = false;
+
+        function renderClassroom(area) {
+            if (lessonPlans.length === 0) {
+                area.innerHTML = `<div class="card empty-state"><div class="big-icon">🏫</div><p>请先到"备课中心"创建备课记录</p></div>`;
+                return;
+            }
+            const latestPlan = lessonPlans[0];
+            const student = students.find(s => s.id === latestPlan.student_id);
+            let html = `
+                <div class="card">
+                    <div class="row" style="align-items:center;">
+                        <div class="col"><label>选择本次备课</label><select id="classroom_plan" onchange="updateClassroomPlan()">${lessonPlans.map(p => `<option value="${p.id}">${p.title||'未命名'} - ${getStudentName(p.student_id)} (${formatDate(p.created_at)})</option>`).join('')}</select></div>
+                        <div class="col" style="text-align:right;">
+                            <div class="timer-display" id="timerDisplay">00:00</div>
+                            <div class="timer-controls">
+                                <button class="btn btn-success btn-sm" onclick="startTimer()">▶ 开始</button>
+                                <button class="btn btn-outline btn-sm" onclick="pauseTimer()">⏸ 暂停</button>
+                                <button class="btn btn-outline btn-sm" onclick="resetTimer()">↺ 重置</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>📋 上课流程</h3>
+                    <div class="step-indicator">
+                        <span class="step active" id="step1">🔥 暖场 (${latestPlan.estimated_minutes_warmup}min)</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step" id="step2">📖 讲解 (${latestPlan.estimated_minutes_teaching}min)</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step" id="step3">✏️ 练习 (${latestPlan.estimated_minutes_practice}min)</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step" id="step4">📝 小测 (${latestPlan.estimated_minutes_quiz}min)</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step" id="step5">📋 总结 (${latestPlan.estimated_minutes_summary}min)</span>
+                    </div>
+                    <div id="classroomContent"></div>
+                </div>`;
+            area.innerHTML = html;
+            updateClassroomPlan();
+        }
+
+        function updateClassroomPlan() {
+            const planId = parseInt(document.getElementById('classroom_plan').value);
+            const plan = lessonPlans.find(p => p.id === planId);
+            if (!plan) return;
+            document.getElementById('step1').textContent = `🔥 暖场 (${plan.estimated_minutes_warmup}min)`;
+            document.getElementById('step2').textContent = `📖 讲解 (${plan.estimated_minutes_teaching}min)`;
+            document.getElementById('step3').textContent = `✏️ 练习 (${plan.estimated_minutes_practice}min)`;
+            document.getElementById('step4').textContent = `📝 小测 (${plan.estimated_minutes_quiz}min)`;
+            document.getElementById('step5').textContent = `📋 总结 (${plan.estimated_minutes_summary}min)`;
+            
+            document.getElementById('classroomContent').innerHTML = `
+                <div class="row">
+                    <div class="col">
+                        <h4>🎯 教学目标</h4>
+                        <p style="white-space:pre-wrap;">${plan.objectives||'未设定'}</p>
+                        <h4>📚 知识点</h4>
+                        <p style="white-space:pre-wrap;">${plan.knowledge_points||'未设定'}</p>
+                    </div>
+                    <div class="col">
+                        <h4>📝 例题</h4>
+                        <p style="white-space:pre-wrap;">${plan.examples||'未设定'}</p>
+                        <h4>⚠️ 预设问题</h4>
+                        <p style="white-space:pre-wrap;">${plan.expected_problems||'未设定'}</p>
+                        <h4>📎 资料链接</h4>
+                        <p>${plan.materials_link||'无'}</p>
+                        <h4>📤 课后作业</h4>
+                        <p style="white-space:pre-wrap;">${plan.homework||'未设定'}</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchToReview(${plan.id})" style="margin-top:16px;">📋 下课，去复盘</button>
+            `;
+        }
+
+        function switchToReview(planId) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelector('[data-page="reviews"]').classList.add('active');
+            currentPage = 'reviews';
+            document.getElementById('pageTitle').textContent = '课后复盘';
+            renderPage();
+            setTimeout(() => showReviewModal(planId), 300);
+        }
+
+        function startTimer() {
+            if (classroomRunning) return;
+            classroomRunning = true;
+            classroomTimer = setInterval(() => {
+                classroomSeconds++;
+                const m = Math.floor(classroomSeconds / 60).toString().padStart(2, '0');
+                const s = (classroomSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timerDisplay').textContent = m + ':' + s;
+            }, 1000);
+        }
+        function pauseTimer() { classroomRunning = false; clearInterval(classroomTimer); }
+        function resetTimer() { pauseTimer(); classroomSeconds = 0; document.getElementById('timerDisplay').textContent = '00:00'; }
+
+        // ==================== 课后复盘 ====================
+        function renderReviews(area) {
+            let html = `<div class="card"><button class="btn btn-primary" onclick="showReviewModal()">+ 新建复盘</button></div>`;
+            if (lessonReviews.length === 0) {
+                html += `<div class="card empty-state"><div class="big-icon">📋</div><p>还没有复盘记录</p></div>`;
+            } else {
+                html += `<div class="card"><table><thead><tr><th>学生</th><th>掌握情况</th><th>态度评分</th><th>时间</th><th>操作</th></tr></thead><tbody>`;
+                lessonReviews.forEach(r => {
+                    html += `<tr>
+                        <td>${getStudentName(r.student_id)}</td>
+                        <td>${(r.mastered||'').substring(0,20)}...</td>
+                        <td>${'⭐'.repeat(r.attitude_score||3)}</td>
+                        <td>${formatDate(r.created_at)}</td>
+                        <td>
+                            <button class="btn btn-outline btn-sm" onclick="showReviewModal(null,${r.id})">查看</button>
+                            <button class="btn btn-success btn-sm" onclick="generateFeedback(${r.id})">生成反馈</button>
+                        </td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            }
+            area.innerHTML = html;
+        }
+
+        function showReviewModal(planId=null, reviewId=null) {
+            const r = reviewId ? lessonReviews.find(r => r.id === reviewId) : {};
+            const modal = document.getElementById('modalContainer');
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+                    <div class="modal" style="max-width:800px;">
+                        <h2>${reviewId?'复盘详情':'新建复盘'}</h2>
+                        <div class="row">
+                            <div class="col"><label>关联备课</label><select id="r_plan_id">${lessonPlans.map(p => `<option value="${p.id}" ${(r.lesson_plan_id||planId)===p.id?'selected':''}>${p.title||'未命名'} - ${getStudentName(p.student_id)}</option>`).join('')}</select></div>
+                            <div class="col"><label>学生</label><select id="r_student_id">${students.map(s => `<option value="${s.id}" ${r.student_id===s.id?'selected':''}>${s.name}</option>`).join('')}</select></div>
+                        </div>
+                        <label>已掌握内容</label><textarea id="r_mastered">${r.mastered||''}</textarea>
+                        <label>未掌握内容</label><textarea id="r_not_mastered">${r.not_mastered||''}</textarea>
+                        <label>反复错题</label><textarea id="r_repeated_mistakes">${r.repeated_mistakes||''}</textarea>
+                        <div class="row">
+                            <div class="col"><label>课堂态度评分</label><select id="r_attitude"><option value="5" ${r.attitude_score===5?'selected':''}>⭐⭐⭐⭐⭐ 非常积极</option><option value="4" ${r.attitude_score===4?'selected':''}>⭐⭐⭐⭐ 比较认真</option><option value="3" ${r.attitude_score===3?'selected':''} selected>⭐⭐⭐ 态度端正</option><option value="2" ${r.attitude_score===2?'selected':''}>⭐⭐ 需要提醒</option><option value="1" ${r.attitude_score===1?'selected':''}>⭐ 注意力不集中</option></select></div>
+                            <div class="col"><label>时间分配复盘</label><input id="r_time_review" value="${r.time_review||''}" placeholder="如：讲解超时5分钟"></div>
+                        </div>
+                        <label>自我反思（哪里讲得啰嗦、哪个例子不好、下次怎么改进）</label><textarea id="r_self_reflection">${r.self_reflection||''}</textarea>
+                        <div class="row">
+                            <div class="col"><label>布置作业</label><textarea id="r_homework_assigned">${r.homework_assigned||''}</textarea></div>
+                            <div class="col"><label>作业截止日期</label><input type="date" id="r_homework_deadline" value="${r.homework_deadline||''}"></div>
+                        </div>
+                        <label>下次课重点</label><input id="r_next_topic" value="${r.next_topic||''}">
+                        <br>
+                        <button class="btn btn-primary" onclick="saveReview(${reviewId||0})">保存复盘</button>
+                        <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                        <div id="feedbackArea"></div>
+                    </div>
+                </div>`;
+        }
+
+        async function saveReview(id) {
+            const data = {
+                lesson_plan_id: parseInt(document.getElementById('r_plan_id').value),
+                student_id: parseInt(document.getElementById('r_student_id').value),
+                mastered: document.getElementById('r_mastered').value,
+                not_mastered: document.getElementById('r_not_mastered').value,
+                repeated_mistakes: document.getElementById('r_repeated_mistakes').value,
+                attitude_score: parseInt(document.getElementById('r_attitude').value),
+                time_review: document.getElementById('r_time_review').value,
+                self_reflection: document.getElementById('r_self_reflection').value,
+                homework_ass
